@@ -46,7 +46,7 @@ CREATE TABLE tpcds_store_sales_sold_time_1T_day
 STORED BY 'org.apache.hadoop.hive.druid.DruidStorageHandler'
 TBLPROPERTIES ("druid.datasource" = "tpcds_store_sales_sold_time_1T_day", "druid.segment.granularity" = "MONTH", "druid.query.granularity" = "DAY")
 AS
-SELECT CAST(d_date AS TIMESTAMP) AS `__time`, cast(i_manufact_id as STRING) i_manufact_id, cast(i_manager_id as STRING) i_manager_id, i_item_desc, cast(i_category_id AS STRING) i_category_id, i_category, i_class, CAST(i_item_id AS STRING) i_item_id, CAST(item.i_brand_id AS STRING) i_brand_id, item.i_brand, CAST(ss_customer_sk AS STRING),CAST(ss_store_sk AS STRING),  i_current_price, ss_ext_sales_price, ss_quantity, ss_sales_price
+SELECT CAST(d_date AS TIMESTAMP) AS `__time`, cast(i_manufact_id as STRING) i_manufact_id, cast(i_manager_id as STRING) i_manager_id, i_item_desc, cast(i_category_id AS STRING) i_category_id, i_category, i_class, CAST(i_item_id AS STRING) i_item_id, CAST(item.i_brand_id AS STRING) i_brand_id, item.i_brand, CAST(ss_customer_sk AS STRING) ss_customer_sk,CAST(ss_store_sk AS STRING) ss_store_sk,  i_current_price, ss_ext_sales_price, ss_quantity, ss_sales_price
 FROM tpcds_bin_partitioned_newschema_orc_10000.store_sales, tpcds_bin_partitioned_newschema_orc_10000.item, tpcds_bin_partitioned_newschema_orc_10000.date_dim where store_sales.ss_item_sk = item.i_item_sk and store_sales.ss_sold_date_sk = date_dim.d_date_sk ;
 ```
 
