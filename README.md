@@ -10,6 +10,7 @@ run `set hive.llap.execution.mode=none;` to force LLAP off during data ingestion
 ## Mandatory params
 First need to point hive to the druid metadata store.
 ```
+set hive.druid.metadata.db.type=mysql
 set hive.druid.metadata.password=diurd;
 set hive.druid.metadata.username=druid;
 set hive.druid.metadata.uri=jdbc:mysql://cn105-10.l42scl.hortonworks.com/druid_benchmark;
@@ -27,7 +28,13 @@ set hive.druid.indexer.partition.size.max=5000000;
 set hive.druid.indexer.memory.rownum.max=500000;
 ```
 `hive.druid.passiveWaitTimeMs` is the amount of time to wait for complete data loading by druid.
-i am setting it to `1` since i am running this job without live druid cluster
+i am setting it to `1` since i am running this job without live druid cluster.
+
+If you want to wait for the data loading then you need to provide to hive the coordinator url.
+`set hive.druid.coordinator.address.default=druid.hostname.example.com:8081;`
+
+If you want to use different deep storage segment storage directory you can use
+`set hive.druid.storage.storageDirectory=/PATHorURI/druid_segments/`, the default is `/druid/segments`
 
 Make sure that containers have enough memory.
 ```
@@ -48,6 +55,20 @@ TBLPROPERTIES ("druid.datasource" = "tpcds_store_sales_sold_time_1T_day", "druid
 AS
 SELECT CAST(d_date AS TIMESTAMP) AS `__time`, cast(i_manufact_id as STRING) i_manufact_id, cast(i_manager_id as STRING) i_manager_id, i_item_desc, cast(i_category_id AS STRING) i_category_id, i_category, i_class, CAST(i_item_id AS STRING) i_item_id, CAST(item.i_brand_id AS STRING) i_brand_id, item.i_brand, CAST(ss_customer_sk AS STRING) ss_customer_sk,CAST(ss_store_sk AS STRING) ss_store_sk,  i_current_price, ss_ext_sales_price, ss_quantity, ss_sales_price
 FROM tpcds_bin_partitioned_newschema_orc_10000.store_sales, tpcds_bin_partitioned_newschema_orc_10000.item, tpcds_bin_partitioned_newschema_orc_10000.date_dim where store_sales.ss_item_sk = item.i_item_sk and store_sales.ss_sold_date_sk = date_dim.d_date_sk ;
+```
+
+## Insert overwrite
+You can append or overwrite some druid segments by using `INSERT OVERWRITE` statement.
+For instance this statement will replace/create data between ranges `2001-12-01` and `2001-12-31`.
+**NOTE that if that interval includes multiple segments granularity the new data will replace all the old data**
+
+```sql
+INSERT OVERWRITE TABLE tpcds_store_sales_sold_time_10T_day_gbd
+SELECT CAST(d_date AS TIMESTAMP) AS `__time`, cast(i_manufact_id as STRING) i_manufact_id, cast(i_manager_id as STRING) i_manager_id, i_item_desc, cast(i_category_id AS STRING) i_category_id,
+i_category, i_class, CAST(i_item_id AS STRING) i_item_id, CAST(item.i_brand_id AS STRING) i_brand_id, item.i_brand, CAST(ss_customer_sk AS STRING) ss_customer_sk,
+CAST(ss_store_sk AS STRING) ss_store_sk, CAST(ss_addr_sk as STRING) ss_addr_sk, CAST(ss_ticket_number AS STRING) ss_ticket_number, i_current_price, ss_ext_sales_price, ss_quantity, ss_sales_price, ss_wholesale_cost, ss_net_profit
+FROM tpcds_bin_partitioned_newschema_orc_10000.store_sales, tpcds_bin_partitioned_newschema_orc_10000.item, tpcds_bin_partitioned_newschema_orc_10000.date_dim
+where store_sales.ss_item_sk = item.i_item_sk and store_sales.ss_sold_date_sk = date_dim.d_date_sk and d_date >= cast("2001-12-01" as date) and d_date <= cast("2001-12-31" as date);
 ```
 
 # Query
