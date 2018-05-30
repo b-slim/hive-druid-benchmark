@@ -57,7 +57,7 @@ SELECT CAST(d_date AS TIMESTAMP) AS `__time`, cast(i_manufact_id as STRING) i_ma
 FROM tpcds_bin_partitioned_newschema_orc_10000.store_sales, tpcds_bin_partitioned_newschema_orc_10000.item, tpcds_bin_partitioned_newschema_orc_10000.date_dim where store_sales.ss_item_sk = item.i_item_sk and store_sales.ss_sold_date_sk = date_dim.d_date_sk ;
 ```
 
-## Insert overwrite
+## WRONG FIXME ~Insert overwrite~
 You can append or overwrite some druid segments by using `INSERT OVERWRITE` statement.
 For instance this statement will replace/create data between ranges `2001-12-01` and `2001-12-31`.
 **NOTE that if that interval includes multiple segments granularity the new data will replace all the old data**
